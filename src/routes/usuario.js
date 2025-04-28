@@ -22,13 +22,27 @@ const usuarioController = require('../controllers/usuarioController');
  *           schema:
  *             type: object
  *             required:
- *               - nome
+ *               - primeiro_nome
+ *               - segundo_nome
+ *               - nome_completo
+ *               - data_nascimento
  *               - email
  *               - senha
+ *               - tipo_perfil
  *             properties:
- *               nome:
+ *               primeiro_nome:
+ *                 type: string
+ *                 example: "Maria"
+ *               segundo_nome:
+ *                 type: string
+ *                 example: "Silva"
+ *               nome_completo:
  *                 type: string
  *                 example: "Maria Silva"
+ *               data_nascimento:
+ *                 type: string
+ *                 format: date
+ *                 example: "1990-01-01"
  *               email:
  *                 type: string
  *                 format: email
@@ -36,9 +50,21 @@ const usuarioController = require('../controllers/usuarioController');
  *               senha:
  *                 type: string
  *                 example: "senha123"
+ *               telefone:
+ *                 type: string
+ *                 example: "(11) 99999-9999"
+ *               tipo_perfil:
+ *                 type: string
+ *                 enum: [Admin, Perito, Assistente]
+ *                 example: "Perito"
+ *               cro_uf:
+ *                 type: string
+ *                 example: "SP-12345"
  *     responses:
  *       201:
  *         description: Usuário cadastrado com sucesso
+ *       400:
+ *         description: Email já cadastrado ou dados inválidos
  *
  *   get:
  *     summary: Lista todos os usuários
@@ -60,10 +86,10 @@ const usuarioController = require('../controllers/usuarioController');
  *         schema:
  *           type: string
  *         required: true
- *         description: "Tipo de perfil do usuário (ex: admin, perito)"
+ *         description: "Tipo de perfil do usuário (ex: Admin, Perito, Assistente)"
  *     responses:
  *       200:
- *         description: Usuários filtrados por tipo retornados
+ *         description: Usuários filtrados por tipo retornados com sucesso
  */
 
 /**
@@ -78,7 +104,7 @@ const usuarioController = require('../controllers/usuarioController');
  *         schema:
  *           type: string
  *         required: true
- *         description: "ID do usuário"
+ *         description: ID do usuário
  *     responses:
  *       200:
  *         description: Dados do usuário retornados
@@ -94,7 +120,7 @@ const usuarioController = require('../controllers/usuarioController');
  *         schema:
  *           type: string
  *         required: true
- *         description: "ID do usuário"
+ *         description: ID do usuário
  *     requestBody:
  *       required: true
  *       content:
@@ -102,9 +128,25 @@ const usuarioController = require('../controllers/usuarioController');
  *           schema:
  *             type: object
  *             properties:
- *               nome:
+ *               primeiro_nome:
  *                 type: string
+ *               segundo_nome:
+ *                 type: string
+ *               nome_completo:
+ *                 type: string
+ *               data_nascimento:
+ *                 type: string
+ *                 format: date
  *               email:
+ *                 type: string
+ *               senha:
+ *                 type: string
+ *               telefone:
+ *                 type: string
+ *               tipo_perfil:
+ *                 type: string
+ *                 enum: [Admin, Perito, Assistente]
+ *               cro_uf:
  *                 type: string
  *     responses:
  *       200:
@@ -121,7 +163,7 @@ const usuarioController = require('../controllers/usuarioController');
  *         required: true
  *         schema:
  *           type: string
- *         description: "ID do usuário"
+ *         description: ID do usuário
  *     responses:
  *       200:
  *         description: Usuário removido com sucesso
@@ -141,18 +183,19 @@ const usuarioController = require('../controllers/usuarioController');
  *         schema:
  *           type: string
  *         required: true
- *         description: "ID do usuário"
+ *         description: ID do usuário
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - foto_base64
  *             properties:
- *               foto:
+ *               foto_base64:
  *                 type: string
- *                 format: uri
- *                 example: "https://exemplo.com/foto.jpg"
+ *                 example: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
  *     responses:
  *       200:
  *         description: Foto atualizada com sucesso

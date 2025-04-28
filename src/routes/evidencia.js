@@ -23,12 +23,18 @@ const evidenciaController = require('../controllers/evidenciaController');
  *           schema:
  *             type: object
  *             properties:
- *               descricao:
- *                 type: string
- *                 example: "Impressão digital encontrada na cena"
  *               id_caso:
  *                 type: string
  *                 example: "6438f9e0bc1f5d3a0c52df98"
+ *               endereco:
+ *                 type: object
+ *                 properties:
+ *                   rua:
+ *                     type: string
+ *                     example: "Rua A"
+ *               radiografia_evidencia:
+ *                 type: string
+ *                 example: "base64string"
  *     responses:
  *       201:
  *         description: Evidência criada com sucesso
@@ -39,6 +45,55 @@ const evidenciaController = require('../controllers/evidenciaController');
  *     responses:
  *       200:
  *         description: Lista de evidências retornada com sucesso
+ */
+
+/**
+ * @swagger
+ * /api/evidencias/caso/{id_caso}:
+ *   get:
+ *     summary: Lista evidências associadas a um caso específico
+ *     tags: [Evidências]
+ *     parameters:
+ *       - in: path
+ *         name: id_caso
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do caso
+ *     responses:
+ *       200:
+ *         description: Evidências do caso retornadas com sucesso
+ *       404:
+ *         description: Caso não encontrado ou sem evidências
+ */
+
+/**
+ * @swagger
+ * /api/evidencias/multiplas:
+ *   post:
+ *     summary: Cadastra múltiplas evidências de uma vez
+ *     tags: [Evidências]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id_caso:
+ *                 type: string
+ *                 example: "6438f9e0bc1f5d3a0c52df98"
+ *               evidencias:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     documentos_evidencia:
+ *                       type: string
+ *                       example: "base64string"
+ *     responses:
+ *       201:
+ *         description: Evidências cadastradas com sucesso
  */
 
 /**
@@ -77,9 +132,9 @@ const evidenciaController = require('../controllers/evidenciaController');
  *           schema:
  *             type: object
  *             properties:
- *               descricao:
+ *               documentos_observacao_evidencia:
  *                 type: string
- *                 example: "Atualização da descrição"
+ *                 example: "Nova observação"
  *     responses:
  *       200:
  *         description: Evidência atualizada com sucesso
@@ -103,61 +158,15 @@ const evidenciaController = require('../controllers/evidenciaController');
  *         description: Evidência não encontrada
  */
 
-/**
- * @swagger
- * /api/evidencias/caso/{id_caso}:
- *   get:
- *     summary: Lista evidências associadas a um caso específico
- *     tags: [Evidências]
- *     parameters:
- *       - in: path
- *         name: id_caso
- *         required: true
- *         schema:
- *           type: string
- *         description: ID do caso
- *     responses:
- *       200:
- *         description: Evidências do caso retornadas com sucesso
- *       404:
- *         description: Caso não encontrado ou sem evidências
- */
+// ⚠️ Rotas específicas primeiro
+router.get('/caso/:id_caso', evidenciaController.obterEvidenciasPorCaso);
+router.post('/multiplas', evidenciaController.criarMultiplasEvidencias);
 
-/**
- * @swagger
- * /api/evidencias/multiplas:
- *   post:
- *     summary: Cadastra múltiplas evidências de uma vez
- *     tags: [Evidências]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: array
- *             items:
- *               type: object
- *               properties:
- *                 descricao:
- *                   type: string
- *                   example: "Amostra de sangue coletada"
- *                 id_caso:
- *                   type: string
- *                   example: "6438f9e0bc1f5d3a0c52df98"
- *     responses:
- *       201:
- *         description: Evidências cadastradas com sucesso
- */
-
-// Rotas básicas CRUD
+// ⚙️ Rotas genéricas depois
 router.post('/', evidenciaController.criarEvidencia);
 router.get('/', evidenciaController.listarEvidencias);
 router.get('/:id', evidenciaController.obterEvidencia);
 router.put('/:id', evidenciaController.atualizarEvidencia);
 router.delete('/:id', evidenciaController.excluirEvidencia);
-
-// Rotas adicionais
-router.get('/caso/:id_caso', evidenciaController.obterEvidenciasPorCaso);
-router.post('/multiplas', evidenciaController.criarMultiplasEvidencias);
 
 module.exports = router;

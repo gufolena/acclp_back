@@ -29,21 +29,64 @@ const casoController = require('../controllers/casoController');
  *           schema:
  *             type: object
  *             properties:
- *               titulo:
+ *               titulo_caso:
  *                 type: string
  *                 example: "Laudo de avaliação odontológica"
- *               descricao:
+ *               descricao_caso:
  *                 type: string
  *                 example: "Paciente com trauma facial após acidente."
- *               status:
+ *               status_caso:
  *                 type: string
- *                 example: "aberto"
- *               idResponsavel:
+ *                 example: "Em andamento"
+ *               responsavel_caso:
  *                 type: string
- *                 example: "123"
+ *                 example: "joao123"
  *     responses:
  *       201:
  *         description: Caso criado com sucesso
+ */
+
+/**
+ * @swagger
+ * /api/casos/com-evidencias:
+ *   post:
+ *     summary: Cria um novo caso com evidências
+ *     tags: [Casos]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               caso:
+ *                 type: object
+ *                 properties:
+ *                   titulo_caso:
+ *                     type: string
+ *                     example: "Caso com evidências"
+ *                   responsavel_caso:
+ *                     type: string
+ *                     example: "joao123"
+ *                   status_caso:
+ *                     type: string
+ *                     example: "Em andamento"
+ *               evidencias:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     tipo:
+ *                       type: string
+ *                       example: "imagem"
+ *                     descricao:
+ *                       type: string
+ *                       example: "Foto da cena do crime"
+ *     responses:
+ *       201:
+ *         description: Caso e evidências criados com sucesso
+ *       400:
+ *         description: Erro na criação do caso ou evidências
  */
 
 /**
@@ -58,7 +101,7 @@ const casoController = require('../controllers/casoController');
  *         schema:
  *           type: string
  *         required: true
- *         description: "Status do caso (ex: aberto, fechado)"
+ *         description: "Status do caso (ex: Em andamento, Finalizado, Arquivado)"
  *     responses:
  *       200:
  *         description: Casos filtrados por status retornados
@@ -123,11 +166,11 @@ const casoController = require('../controllers/casoController');
  *           schema:
  *             type: object
  *             properties:
- *               titulo:
+ *               titulo_caso:
  *                 type: string
- *               descricao:
+ *               descricao_caso:
  *                 type: string
- *               status:
+ *               status_caso:
  *                 type: string
  *     responses:
  *       200:
@@ -159,6 +202,7 @@ router.get('/:id', casoController.buscarPorId);
 
 // ROTAS DE CRIAÇÃO
 router.post('/', casoController.criar);
+router.post('/com-evidencias', casoController.criarCasoComEvidencias);
 
 // ROTAS DE ATUALIZAÇÃO
 router.put('/:id', casoController.atualizar);

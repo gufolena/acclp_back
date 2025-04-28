@@ -3,3 +3,4 @@
 [2025-04-28T13:38:25.195Z] POST /api/usuarios 400 - 85ms - IP: ::1
 [2025-04-28T13:40:19.095Z] POST /api/usuarios 400 - 85ms - IP: ::1
 [2025-04-28T13:40:47.853Z] POST /api/usuarios 201 - 237ms - IP: ::1
+[2025-04-28T13:49:35.871Z] POST /api/auth/login 401 - 80ms - IP: ::1

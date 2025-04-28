@@ -41,21 +41,42 @@ const { loginUsuario } = require('../controllers/usuarioController');
  *             schema:
  *               type: object
  *               properties:
- *                 token:
+ *                 sucesso:
+ *                   type: boolean
+ *                   example: true
+ *                 mensagem:
  *                   type: string
- *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
- *                 usuario:
+ *                   example: Login realizado com sucesso
+ *                 dados:
  *                   type: object
  *                   properties:
  *                     id:
  *                       type: string
- *                       example: "123"
+ *                       example: "662d99df4a3791a3440b98a7"
+ *                     primeiro_nome:
+ *                       type: string
+ *                       example: João
+ *                     segundo_nome:
+ *                       type: string
+ *                       example: Silva
  *                     nome:
  *                       type: string
- *                       example: "João Silva"
+ *                       example: João Silva
  *                     email:
  *                       type: string
- *                       example: "usuario@exemplo.com"
+ *                       example: joao@exemplo.com
+ *                     telefone:
+ *                       type: string
+ *                       example: "11999999999"
+ *                     tipo_perfil:
+ *                       type: string
+ *                       example: Perito
+ *                     cro_uf:
+ *                       type: string
+ *                       example: SP-12345
+ *                     foto_perfil:
+ *                       type: string
+ *                       example: "https://exemplo.com/foto.jpg"
  *       401:
  *         description: Credenciais inválidas
  *       500:
