@@ -14,7 +14,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "http://localhost:5000", // URL do seu backend (ajuste conforme necessário)
+        url: "https://acclp.onrender.com", // URL do seu backend (ajuste conforme necessário)
       },
     ],
   },
