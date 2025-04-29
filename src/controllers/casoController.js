@@ -1,6 +1,8 @@
 // controllers/casoController.js
 const mongoose = require('mongoose');
 const Caso = require('../models/Caso');
+// Importação explícita do modelo Evidencia
+const Evidencia = require('../models/evidencia');
 
 // Buscar todos os casos
 exports.buscarTodos = async (req, res) => {
@@ -26,6 +28,41 @@ exports.buscarPorId = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+
+
+// @desc    Excluir todas as evidências
+// @route   DELETE /api/evidencias/limpar-tudo
+// @access  Private
+exports.excluirTodasEvidencias = async (req, res) => {
+  try {
+    // Confirmar a operação com um token de segurança
+    const { token_confirmacao } = req.body;
+    
+    if (!token_confirmacao || token_confirmacao !== 'CONFIRMAR_EXCLUSAO') {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'É necessário confirmar a exclusão com o token de segurança'
+      });
+    }
+    
+    // Excluir todas as evidências
+    const resultado = await Evidencia.deleteMany({});
+    
+    res.status(200).json({
+      sucesso: true,
+      mensagem: `${resultado.deletedCount} evidências foram removidas com sucesso`
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message
+    });
+  }
+};
+
+
 
 // Criar novo caso
 exports.criar = async (req, res) => {
@@ -211,8 +248,30 @@ exports.criarCasoComEvidencias = async (req, res) => {
   try {
     const { caso, evidencias } = req.body;
     
+    // Log para debug
+    console.log('Recebendo dados para criar caso com evidências');
+    console.log('Dados do caso:', JSON.stringify(caso, null, 2));
+    console.log('Quantidade de evidências:', evidencias ? evidencias.length : 0);
+    
+    if (!caso || !caso.titulo_caso || !caso.responsavel_caso) {
+      throw new Error('Dados do caso incompletos. Certifique-se de fornecer pelo menos título e responsável.');
+    }
+    
+    // Encontrar o último id_caso para incrementá-lo
+    let ultimoIdCaso = 0;
+    const ultimoCaso = await Caso.findOne().sort({ id_caso: -1 });
+    if (ultimoCaso) {
+      ultimoIdCaso = ultimoCaso.id_caso;
+    }
+    
+    // Adiciona o id_caso incremental
+    const casoDados = {
+      ...caso,
+      id_caso: ultimoIdCaso + 1
+    };
+    
     // Criar o caso
-    const novoCaso = await Caso.create([caso], { session });
+    const novoCaso = await Caso.create([casoDados], { session });
     
     // Verificar se o caso foi criado
     if (!novoCaso || novoCaso.length === 0) {
@@ -220,32 +279,39 @@ exports.criarCasoComEvidencias = async (req, res) => {
     }
     
     const casoId = novoCaso[0]._id;
+    console.log('Caso criado com sucesso. ID:', casoId);
     
     if (evidencias && evidencias.length > 0) {
-      // Carregar o modelo de Evidencia
-      const Evidencia = mongoose.model('Evidencia');
-      
-      // Preparar as evidências com o ID do caso
-      const evidenciasComCaso = evidencias.map(evidencia => ({
-        ...evidencia,
-        id_caso: casoId
-      }));
-      
-      // Criar as evidências
-      const novasEvidencias = await Evidencia.create(evidenciasComCaso, { session });
-      
-      // Confirmar a transação
-      await session.commitTransaction();
-      session.endSession();
-      
-      res.status(201).json({
-        sucesso: true,
-        mensagem: 'Caso e evidências criados com sucesso',
-        dados: {
-          caso: novoCaso[0],
-          evidencias: novasEvidencias
-        }
-      });
+      try {
+        // Usar o modelo Evidencia importado diretamente em vez de mongoose.model
+        // Preparar as evidências com o ID do caso
+        const evidenciasComCaso = evidencias.map(evidencia => ({
+          ...evidencia,
+          id_caso: casoId // Usar o _id do MongoDB como id_caso na referência
+        }));
+        
+        console.log('Preparando para criar', evidenciasComCaso.length, 'evidência(s)');
+        
+        // Criar as evidências
+        const novasEvidencias = await Evidencia.create(evidenciasComCaso, { session });
+        console.log('Evidências criadas com sucesso:', novasEvidencias.length);
+        
+        // Confirmar a transação
+        await session.commitTransaction();
+        session.endSession();
+        
+        res.status(201).json({
+          sucesso: true,
+          mensagem: 'Caso e evidências criados com sucesso',
+          dados: {
+            caso: novoCaso[0],
+            evidencias: novasEvidencias
+          }
+        });
+      } catch (evidenciaError) {
+        console.error('Erro ao criar evidências:', evidenciaError);
+        throw new Error(`Falha ao criar evidência: ${evidenciaError.message}`);
+      }
     } else {
       // Se não houver evidências, apenas confirmar a transação do caso
       await session.commitTransaction();
@@ -261,6 +327,7 @@ exports.criarCasoComEvidencias = async (req, res) => {
     }
     
   } catch (error) {
+    console.error('Erro durante criação do caso com evidências:', error);
     // Abortar a transação em caso de erro
     await session.abortTransaction();
     session.endSession();

@@ -68,6 +68,5 @@ const EvidenciaSchema = new Schema({
   }
 });
 
-// Verificar se o modelo já existe antes de compilar
-// Isso evita o erro "OverwriteModelError: Cannot overwrite model once compiled"
-module.exports = mongoose.models.Evidencia || mongoose.model('Evidencia', EvidenciaSchema);
+// Forma correta de exportar o modelo
+module.exports = mongoose.model('Evidencia', EvidenciaSchema);
