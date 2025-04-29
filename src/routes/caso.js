@@ -199,21 +199,22 @@ const casoController = require('../controllers/casoController');
 router.post('/com-evidencias', casoController.criarCasoComEvidencias);
 router.post('/', casoController.criar);
 
-
-// ROTAS DE LISTAGEM
+// ROTAS DE LISTAGEM (ordem importa!)
 router.get('/status/:status', casoController.buscarPorStatus);
 router.get('/responsavel/:idResponsavel/status/:statusCaso', casoController.buscarPorResponsavelEStatus);
+
+// ⚠️ Adicione uma rota GET específica se quiser (ex: visualizar formulário ou metadados de criação com evidências)
+// router.get('/com-evidencias', casoController.algumaFuncao); // opcional
+
 router.get('/', casoController.buscarTodos);
 
-
+// ⚠️ ROTA POR ID (DEIXAR POR ÚLTIMO SEMPRE)
+router.get('/:id', casoController.buscarPorId);
 
 // ROTAS DE ATUALIZAÇÃO
 router.put('/:id', casoController.atualizar);
 
 // ROTAS DE EXCLUSÃO
 router.delete('/:id', casoController.excluir);
-
-// ⚠️ ROTA POR ID (DEIXAR SEMPRE POR ÚLTIMO MESMO)
-router.get('/:id', casoController.buscarPorId);
 
 module.exports = router;
