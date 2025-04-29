@@ -204,7 +204,7 @@ router.post('/', casoController.criar);
 router.get('/status/:status', casoController.buscarPorStatus);
 router.get('/responsavel/:idResponsavel/status/:statusCaso', casoController.buscarPorResponsavelEStatus);
 router.get('/', casoController.buscarTodos);
-router.get('/:id', casoController.buscarPorId);
+
 
 
 // ROTAS DE ATUALIZAÇÃO
@@ -212,5 +212,8 @@ router.put('/:id', casoController.atualizar);
 
 // ROTAS DE EXCLUSÃO
 router.delete('/:id', casoController.excluir);
+
+// ⚠️ ROTA POR ID (DEIXAR SEMPRE POR ÚLTIMO MESMO)
+router.get('/:id', casoController.buscarPorId);
 
 module.exports = router;
