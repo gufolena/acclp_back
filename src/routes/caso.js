@@ -194,15 +194,18 @@ const casoController = require('../controllers/casoController');
  *         description: Caso não encontrado
  */
 
-// ROTAS DE LISTAGEM
-router.get('/', casoController.buscarTodos);
-router.get('/status/:status', casoController.buscarPorStatus);
-router.get('/responsavel/:idResponsavel/status/:statusCaso', casoController.buscarPorResponsavelEStatus);
-router.get('/:id', casoController.buscarPorId);
 
 // ROTAS DE CRIAÇÃO
-router.post('/', casoController.criar);
 router.post('/com-evidencias', casoController.criarCasoComEvidencias);
+router.post('/', casoController.criar);
+
+
+// ROTAS DE LISTAGEM
+router.get('/status/:status', casoController.buscarPorStatus);
+router.get('/responsavel/:idResponsavel/status/:statusCaso', casoController.buscarPorResponsavelEStatus);
+router.get('/', casoController.buscarTodos);
+router.get('/:id', casoController.buscarPorId);
+
 
 // ROTAS DE ATUALIZAÇÃO
 router.put('/:id', casoController.atualizar);
