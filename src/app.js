@@ -6,6 +6,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const logger = require('./middlewares/logger');
+const path = require('path');
 
 // Importando as rotas
 const usuarioRoutes = require('./routes/usuario');

@@ -1,57 +1,68 @@
 const express = require('express');
 const router = express.Router();
 const casoController = require('../controllers/casoController');
-
+const authMiddleware = require('../middlewares/authMiddleware');
+const autorizar = require('../middlewares/autorizar');
 
 /**
  * @swagger
  * tags:
  *   name: Casos
- *   description: Endpoints para gerenciamento de casos
+ *   description: Endpoints para gerenciamento de casos periciais
  */
 
 /**
  * @swagger
  * /api/casos:
- *   get:
- *     summary: Lista todos os casos
- *     tags: [Casos]
- *     responses:
- *       200:
- *         description: Lista de casos retornada com sucesso
  *   post:
  *     summary: Cria um novo caso
  *     tags: [Casos]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - titulo
+ *               - descricao
+ *               - status
  *             properties:
- *               titulo_caso:
+ *               titulo:
  *                 type: string
- *                 example: "Laudo de avaliação odontológica"
- *               descricao_caso:
+ *               descricao:
  *                 type: string
- *                 example: "Paciente com trauma facial após acidente."
- *               status_caso:
+ *               status:
  *                 type: string
  *                 example: "Em andamento"
- *               responsavel_caso:
+ *               id_responsavel:
  *                 type: string
- *                 example: "joao123"
  *     responses:
  *       201:
  *         description: Caso criado com sucesso
+ *       400:
+ *         description: Dados inválidos
+
+ *   get:
+ *     summary: Lista todos os casos
+ *     tags: [Casos]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de casos retornada com sucesso
  */
 
 /**
  * @swagger
  * /api/casos/com-evidencias:
  *   post:
- *     summary: Cria um novo caso com evidências
+ *     summary: Cria um caso com evidências associadas
  *     tags: [Casos]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -61,74 +72,15 @@ const casoController = require('../controllers/casoController');
  *             properties:
  *               caso:
  *                 type: object
- *                 properties:
- *                   titulo_caso:
- *                     type: string
- *                     example: "Caso com evidências"
- *                   responsavel_caso:
- *                     type: string
- *                     example: "joao123"
- *                   status_caso:
- *                     type: string
- *                     example: "Em andamento"
  *               evidencias:
  *                 type: array
  *                 items:
  *                   type: object
- *                   properties:
- *                     tipo:
- *                       type: string
- *                       example: "imagem"
- *                     descricao:
- *                       type: string
- *                       example: "Foto da cena do crime"
  *     responses:
  *       201:
  *         description: Caso e evidências criados com sucesso
  *       400:
- *         description: Erro na criação do caso ou evidências
- */
-
-/**
- * @swagger
- * /api/casos/status/{status}:
- *   get:
- *     summary: Busca casos por status
- *     tags: [Casos]
- *     parameters:
- *       - in: path
- *         name: status
- *         schema:
- *           type: string
- *         required: true
- *         description: "Status do caso (ex: Em andamento, Finalizado, Arquivado)"
- *     responses:
- *       200:
- *         description: Casos filtrados por status retornados
- */
-
-/**
- * @swagger
- * /api/casos/responsavel/{idResponsavel}/status/{statusCaso}:
- *   get:
- *     summary: Busca casos por responsável e status
- *     tags: [Casos]
- *     parameters:
- *       - in: path
- *         name: idResponsavel
- *         schema:
- *           type: string
- *         required: true
- *         description: ID do responsável
- *       - in: path
- *         name: statusCaso
- *         schema:
- *           type: string
- *         required: true
- *         description: Status do caso
- *     responses:
- *       200:
- *         description: Casos filtrados por responsável e status retornados
+ *         description: Erro nos dados fornecidos
  */
 
 /**
@@ -137,28 +89,31 @@ const casoController = require('../controllers/casoController');
  *   get:
  *     summary: Busca um caso por ID
  *     tags: [Casos]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID do caso
  *     responses:
  *       200:
  *         description: Caso encontrado
  *       404:
  *         description: Caso não encontrado
+ * 
  *   put:
  *     summary: Atualiza um caso existente
  *     tags: [Casos]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID do caso
  *     requestBody:
  *       required: true
  *       content:
@@ -166,55 +121,112 @@ const casoController = require('../controllers/casoController');
  *           schema:
  *             type: object
  *             properties:
- *               titulo_caso:
+ *               titulo:
  *                 type: string
- *               descricao_caso:
+ *               descricao:
  *                 type: string
- *               status_caso:
+ *               status:
  *                 type: string
  *     responses:
  *       200:
- *         description: Caso atualizado com sucesso
+ *         description: Caso atualizado
  *       404:
  *         description: Caso não encontrado
+ * 
  *   delete:
  *     summary: Remove um caso
  *     tags: [Casos]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: string
- *         description: ID do caso
  *     responses:
  *       200:
- *         description: Caso excluído com sucesso
+ *         description: Caso removido
  *       404:
  *         description: Caso não encontrado
  */
 
+/**
+ * @swagger
+ * /api/casos/status/{status}:
+ *   get:
+ *     summary: Lista casos por status
+ *     tags: [Casos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: status
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "Finalizado"
+ *     responses:
+ *       200:
+ *         description: Lista de casos com o status informado
+ */
 
-// ROTAS DE CRIAÇÃO
-router.post('/com-evidencias', casoController.criarCasoComEvidencias);
-router.post('/', casoController.criar);
+/**
+ * @swagger
+ * /api/casos/responsavel/{idResponsavel}/status/{statusCaso}:
+ *   get:
+ *     summary: Lista casos por responsável e status
+ *     tags: [Casos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: idResponsavel
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: statusCaso
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Casos filtrados retornados
+ */
 
-// ROTAS DE LISTAGEM (ordem importa!)
-router.get('/status/:status', casoController.buscarPorStatus);
-router.get('/responsavel/:idResponsavel/status/:statusCaso', casoController.buscarPorResponsavelEStatus);
+// ✅ Protege todas as rotas de caso
+router.use(authMiddleware);
 
-// ⚠️ Adicione uma rota GET específica se quiser (ex: visualizar formulário ou metadados de criação com evidências)
-// router.get('/com-evidencias', casoController.algumaFuncao); // opcional
+// ROTAS DE CRIAÇÃO — Apenas Admin e Perito
+// POST /api/casos/ - Cria um novo caso (recurso Caso)
+router.post('/', autorizar('Admin', 'Perito'), casoController.criar);
+// POST /api/casos/com-evidencias - Cria um caso e suas evidências associadas (ação específica)
+router.post('/com-evidencias', autorizar('Admin', 'Perito'), casoController.criarCasoComEvidencias);
 
-router.get('/', casoController.buscarTodos);
 
-// ⚠️ ROTA POR ID (DEIXAR POR ÚLTIMO SEMPRE)
-router.get('/:id', casoController.buscarPorId);
 
-// ROTAS DE ATUALIZAÇÃO
-router.put('/:id', casoController.atualizar);
 
-// ROTAS DE EXCLUSÃO
-router.delete('/:id', casoController.excluir);
+// ROTAS DE LISTAGEM E DETALHE — Todos os perfis podem visualizar
+// GET /api/casos/ - Lista todos os casos (recurso Caso)
+router.get('/', autorizar('Admin', 'Perito', 'Assistente'), casoController.buscarTodos);
+// GET /api/casos/:id - Busca um caso específico pelo ID
+router.get('/:id', autorizar('Admin', 'Perito', 'Assistente'), casoController.buscarPorId);
+// GET /api/casos/status/:status - Busca casos por status (filtro comum)
+router.get('/status/:status', autorizar('Admin', 'Perito', 'Assistente'), casoController.buscarPorStatus);
+// GET /api/casos/responsavel/:idResponsavel/status/:statusCaso - Busca casos por responsável e status (filtro específico)
+router.get('/responsavel/:idResponsavel/status/:statusCaso', autorizar('Admin', 'Perito', 'Assistente'), casoController.buscarPorResponsavelEStatus);
+
+
+
+// ROTA DE ATUALIZAÇÃO — Apenas Admin e Perito
+// PUT /api/casos/:id - Atualiza um caso existente pelo ID (recurso Caso)
+router.put('/:id', autorizar('Admin', 'Perito'), casoController.atualizar);
+
+
+
+// ROTA DE EXCLUSÃO — Apenas Admin
+// DELETE /api/casos/:id - Remove um caso existente pelo ID (recurso Caso)
+router.delete('/:id', autorizar('Admin'), casoController.excluir);
 
 module.exports = router;

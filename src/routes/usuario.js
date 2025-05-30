@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const usuarioController = require('../controllers/usuarioController');
+const authMiddleware = require('../middlewares/authMiddleware');
+const autorizar = require('../middlewares/autorizar');
 
 /**
  * @swagger
@@ -32,95 +34,96 @@ const usuarioController = require('../controllers/usuarioController');
  *             properties:
  *               primeiro_nome:
  *                 type: string
- *                 example: "Maria"
  *               segundo_nome:
  *                 type: string
- *                 example: "Silva"
  *               nome_completo:
  *                 type: string
- *                 example: "Maria Silva"
  *               data_nascimento:
  *                 type: string
  *                 format: date
- *                 example: "1990-01-01"
  *               email:
  *                 type: string
  *                 format: email
- *                 example: "maria@exemplo.com"
  *               senha:
  *                 type: string
- *                 example: "senha123"
  *               telefone:
  *                 type: string
- *                 example: "(11) 99999-9999"
  *               tipo_perfil:
  *                 type: string
  *                 enum: [Admin, Perito, Assistente]
- *                 example: "Perito"
  *               cro_uf:
  *                 type: string
- *                 example: "SP-12345"
  *     responses:
  *       201:
  *         description: Usuário cadastrado com sucesso
  *       400:
- *         description: Email já cadastrado ou dados inválidos
- *
- *   get:
- *     summary: Lista todos os usuários
- *     tags: [Usuários]
- *     responses:
- *       200:
- *         description: Lista de usuários retornada com sucesso
+ *         description: Dados inválidos ou e-mail já cadastrado
  */
 
 /**
  * @swagger
- * /api/usuarios/tipo/{tipo_perfil}:
+ * /api/usuarios:
+ *   get:
+ *     summary: Lista todos os usuários
+ *     tags: [Usuários]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de usuários
+ */
+
+/**
+ * @swagger
+ * /api/usuarios/por-tipo/{tipo_perfil}:
  *   get:
  *     summary: Lista usuários por tipo de perfil
  *     tags: [Usuários]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: tipo_perfil
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: "Tipo de perfil do usuário (ex: Admin, Perito, Assistente)"
+ *           enum: [Admin, Perito, Assistente]
  *     responses:
  *       200:
- *         description: Usuários filtrados por tipo retornados com sucesso
+ *         description: Lista de usuários filtrados
  */
 
 /**
  * @swagger
  * /api/usuarios/{id}:
  *   get:
- *     summary: Obtém dados de um usuário pelo ID
+ *     summary: Obtém um usuário pelo ID
  *     tags: [Usuários]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID do usuário
  *     responses:
  *       200:
- *         description: Dados do usuário retornados
+ *         description: Detalhes do usuário
  *       404:
  *         description: Usuário não encontrado
- *
+
  *   put:
- *     summary: Atualiza dados de um usuário
+ *     summary: Atualiza completamente os dados de um usuário
  *     tags: [Usuários]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID do usuário
  *     requestBody:
  *       required: true
  *       content:
@@ -153,17 +156,18 @@ const usuarioController = require('../controllers/usuarioController');
  *         description: Usuário atualizado com sucesso
  *       404:
  *         description: Usuário não encontrado
- *
+
  *   delete:
  *     summary: Remove um usuário
  *     tags: [Usuários]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
  *         schema:
  *           type: string
- *         description: ID do usuário
  *     responses:
  *       200:
  *         description: Usuário removido com sucesso
@@ -174,16 +178,17 @@ const usuarioController = require('../controllers/usuarioController');
 /**
  * @swagger
  * /api/usuarios/{id}/foto:
- *   put:
+ *   patch:
  *     summary: Atualiza a foto de perfil do usuário
  *     tags: [Usuários]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID do usuário
  *     requestBody:
  *       required: true
  *       content:
@@ -203,19 +208,31 @@ const usuarioController = require('../controllers/usuarioController');
  *         description: Usuário não encontrado
  */
 
-// ROTAS DE CRIAÇÃO
+// 📌 ROTA PÚBLICA: Cadastro de novo usuário (sem login)
+// POST /api/usuarios/ - Cria um novo usuário
 router.post('/', usuarioController.cadastrarUsuario);
 
-// ROTAS DE LISTAGEM
-router.get('/', usuarioController.listarUsuarios);
-router.get('/tipo/:tipo_perfil', usuarioController.listarUsuariosPorTipoPerfil);
-router.get('/:id', usuarioController.obterUsuario);
+// 🔒 PROTEGE TODAS AS ROTAS A PARTIR DAQUI
+router.use(authMiddleware);
 
-// ROTAS DE ATUALIZAÇÃO
-router.put('/:id/foto', usuarioController.atualizarFotoPerfil);
-router.put('/:id', usuarioController.atualizarUsuario);
+// 🔎 LISTAGENS — Admin, Perito, Assistente
+// GET /api/usuarios/ - Lista todos os usuários
+router.get('/', autorizar('Admin', 'Perito', 'Assistente'), usuarioController.listarUsuarios);
+// GET /api/usuarios/por-tipo/:tipo_perfil - Lista usuários por tipo de perfil
+router.get('/por-tipo/:tipo_perfil', autorizar('Admin', 'Perito', 'Assistente'), usuarioController.listarUsuariosPorTipoPerfil);
 
-// ROTAS DE EXCLUSÃO
-router.delete('/:id', usuarioController.excluirUsuario);
+// 📄 DETALHE — Admin, Perito, Assistente
+// GET /api/usuarios/:id - Obtém um usuário específico pelo ID
+router.get('/:id', autorizar('Admin', 'Perito', 'Assistente'), usuarioController.obterUsuario);
+
+// ✏️ ATUALIZAÇÃO DE DADOS — Admin ou o próprio usuário (regras tratadas no controller)
+// PUT /api/usuarios/:id - Atualiza os dados completos de um usuário
+router.put('/:id', autorizar('Admin', 'Perito'), usuarioController.atualizarUsuario);
+// PATCH /api/usuarios/:id/foto - Atualiza parcialmente um usuário (apenas a foto)
+router.patch('/:id/foto', autorizar('Admin', 'Perito'), usuarioController.atualizarFotoPerfil);
+
+// 🗑️ EXCLUSÃO — Apenas Admin
+// DELETE /api/usuarios/:id - Remove um usuário pelo ID
+router.delete('/:id', autorizar('Admin'), usuarioController.excluirUsuario);
 
 module.exports = router;
