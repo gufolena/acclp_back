@@ -6,7 +6,7 @@ const swaggerUi = require("swagger-ui-express");
 // Configurações do Swagger/OpenAPI
 const swaggerOptions = {
   definition: {
-    openapi: "3.0.0",
+    openapi: "3.0.0", // Versão da especificação OpenAPI
     info: {
       title: "API de Laudos Periciais",
       version: "1.0.0",
@@ -14,21 +14,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "https://acclp.onrender.com", // URL do seu backend 
-      },
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
-        },
-      },
-    },
-    security: [
-      {
-        bearerAuth: [],
+        url: "https://acclp.onrender.com", // URL do seu backend (ajuste conforme necessário)
       },
     ],
   },

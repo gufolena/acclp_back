@@ -2,8 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const evidenciaController = require('../controllers/evidenciaController');
-const authMiddleware = require('../middlewares/authMiddleware');
-const autorizar = require('../middlewares/autorizar');
 
 /**
  * @swagger
@@ -14,78 +12,105 @@ const autorizar = require('../middlewares/autorizar');
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     Endereco:
+ *       type: object
+ *       properties:
+ *         rua:
+ *           type: string
+ *         bairro:
+ *           type: string
+ *         cep:
+ *           type: string
+ *         numero:
+ *           type: string
+ *         estado:
+ *           type: string
+ *         cidade:
+ *           type: string
+ *     EvidenciaInput:
+ *       type: object
+ *       required:
+ *         - id_caso
+ *       properties:
+ *         id_caso:
+ *           type: string
+ *         endereco:
+ *           $ref: '#/components/schemas/Endereco'
+ *         radiografia_evidencia:
+ *           type: string
+ *           description: Imagem em base64
+ *         radiografia_observacao_evidencia:
+ *           type: string
+ *         odontograma_evidencia:
+ *           type: string
+ *           description: Imagem em base64
+ *         odontograma_observacao_evidencia:
+ *           type: string
+ *         documentos_evidencia:
+ *           type: string
+ *           description: Documentos em base64
+ *         documentos_observacao_evidencia:
+ *           type: string
+ *     EvidenciaFormatada:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         id_caso:
+ *           type: string
+ *         endereco:
+ *           $ref: '#/components/schemas/Endereco'
+ *         radiografia:
+ *           type: object
+ *           properties:
+ *             existe:
+ *               type: boolean
+ *             observacao:
+ *               type: string
+ *         odontograma:
+ *           type: object
+ *           properties:
+ *             existe:
+ *               type: boolean
+ *             observacao:
+ *               type: string
+ *         documentos:
+ *           type: object
+ *           properties:
+ *             existe:
+ *               type: boolean
+ *             observacao:
+ *               type: string
+ *         data_criacao:
+ *           type: string
+ *           format: date-time
+ */
+
+/**
+ * @swagger
  * /api/evidencias:
  *   post:
- *     summary: Cria uma nova evidência
+ *     summary: Criar uma nova evidência
  *     tags: [Evidências]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [descricao, tipo, id_caso]
- *             properties:
- *               descricao:
- *                 type: string
- *               tipo:
- *                 type: string
- *                 example: "Imagem"
- *               arquivo_base64:
- *                 type: string
- *                 example: "data:image/jpeg;base64,/9j/4AAQSk..."
- *               id_caso:
- *                 type: string
+ *             $ref: '#/components/schemas/EvidenciaInput'
  *     responses:
  *       201:
  *         description: Evidência criada com sucesso
- *       400:
- *         description: Erro de validação
- */
-
-/**
- * @swagger
- * /api/evidencias/multiplas:
- *   post:
- *     summary: Cria múltiplas evidências de uma vez
- *     tags: [Evidências]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: array
- *             items:
- *               type: object
- *               required: [descricao, tipo, id_caso]
- *               properties:
- *                 descricao:
- *                   type: string
- *                 tipo:
- *                   type: string
- *                 arquivo_base64:
- *                   type: string
- *                 id_caso:
- *                   type: string
- *     responses:
- *       201:
- *         description: Evidências criadas com sucesso
- *       400:
- *         description: Dados inválidos
- */
-
-/**
- * @swagger
- * /api/evidencias:
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/EvidenciaFormatada'
+ *
  *   get:
- *     summary: Lista todas as evidências
+ *     summary: Listar todas as evidências (agrupadas por caso)
  *     tags: [Evidências]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de evidências
@@ -95,30 +120,30 @@ const autorizar = require('../middlewares/autorizar');
  * @swagger
  * /api/evidencias/{id}:
  *   get:
- *     summary: Obtém uma evidência específica pelo ID
+ *     summary: Obter uma evidência pelo ID
  *     tags: [Evidências]
- *     security:
- *       - bearerAuth: []
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: Evidência encontrada
+ *         description: Detalhes da evidência
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/EvidenciaFormatada'
  *       404:
  *         description: Evidência não encontrada
-
+ *
  *   put:
- *     summary: Atualiza uma evidência existente
+ *     summary: Atualizar uma evidência
  *     tags: [Evidências]
- *     security:
- *       - bearerAuth: []
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -127,102 +152,105 @@ const autorizar = require('../middlewares/autorizar');
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               descricao:
- *                 type: string
- *               tipo:
- *                 type: string
- *               arquivo_base64:
- *                 type: string
+ *             $ref: '#/components/schemas/EvidenciaInput'
  *     responses:
  *       200:
  *         description: Evidência atualizada com sucesso
- *       404:
- *         description: Evidência não encontrada
-
+ *
  *   delete:
- *     summary: Remove uma evidência específica
+ *     summary: Excluir uma evidência
  *     tags: [Evidências]
- *     security:
- *       - bearerAuth: []
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: Evidência removida com sucesso
- *       404:
- *         description: Evidência não encontrada
+ *         description: Evidência excluída com sucesso
  */
 
 /**
  * @swagger
  * /api/evidencias/caso/{id_caso}:
  *   get:
- *     summary: Lista evidências de um caso específico
+ *     summary: Obter todas as evidências de um caso específico
  *     tags: [Evidências]
- *     security:
- *       - bearerAuth: []
  *     parameters:
- *       - name: id_caso
- *         in: path
+ *       - in: path
+ *         name: id_caso
  *         required: true
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: Lista de evidências do caso
+ *         description: Lista de evidências para o caso
  *       404:
- *         description: Nenhuma evidência encontrada para o caso
+ *         description: Nenhuma evidência encontrada
  */
 
 /**
  * @swagger
- * /api/evidencias/todas:
- *   delete:
- *     summary: Remove todas as evidências do sistema (⚠️ somente Admin)
+ * /api/evidencias/multiplas:
+ *   post:
+ *     summary: Criar múltiplas evidências para um caso
  *     tags: [Evidências]
- *     security:
- *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id_caso:
+ *                 type: string
+ *               evidencias:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/EvidenciaInput'
  *     responses:
- *       200:
- *         description: Todas as evidências foram excluídas
- *       403:
- *         description: Acesso negado
+ *       201:
+ *         description: Evidências criadas com sucesso
  */
 
-// 🔐 Protege todas as rotas com autenticação
-router.use(authMiddleware);
+/**
+ * @swagger
+ * /api/evidencias/limpar-tudo:
+ *   delete:
+ *     summary: Excluir todas as evidências com confirmação
+ *     tags: [Evidências]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token_confirmacao:
+ *                 type: string
+ *                 example: CONFIRMAR_EXCLUSAO
+ *     responses:
+ *       200:
+ *         description: Todas as evidências foram removidas com sucesso
+ *       400:
+ *         description: Token de confirmação inválido
+ */
 
-// ➕ CRIAÇÃO
-// POST /api/evidencias/ - Cria uma única evidência
-router.post('/', autorizar('Admin', 'Perito'), evidenciaController.criarEvidencia);
-// POST /api/evidencias/multiplas - Cria múltiplas evidências
-router.post('/multiplas', autorizar('Admin', 'Perito'), evidenciaController.criarMultiplasEvidencias);
 
+// IMPORTANTE: Rotas específicas ANTES das rotas com parâmetros (:id)
+// Rota para excluir todas as evidências (Limpar tabela)
+router.delete('/limpar-tudo', evidenciaController.excluirTodasEvidencias);
 
-// 📋 LISTAGEM E DETALHE
-// GET /api/evidencias/ - Lista todas as evidências (com filtros no front, se necessário)
-router.get('/', autorizar('Admin', 'Perito', 'Assistente'), evidenciaController.listarEvidencias);
-// GET /api/evidencias/:id - Obtém uma evidência específica pelo ID
-router.get('/:id', autorizar('Admin', 'Perito', 'Assistente'), evidenciaController.obterEvidencia);
-// GET /api/evidencias/caso/:id_caso - Lista evidências associadas a um caso específico
-router.get('/caso/:id_caso', autorizar('Admin', 'Perito', 'Assistente'), evidenciaController.obterEvidenciasPorCaso);
+// Rotas adicionais específicas
+router.get('/caso/:id_caso', evidenciaController.obterEvidenciasPorCaso);
+router.post('/multiplas', evidenciaController.criarMultiplasEvidencias);
 
-
-// ✏️ ATUALIZAÇÃO
-// PUT /api/evidencias/:id - Atualiza uma evidência existente pelo ID
-router.put('/:id', autorizar('Admin', 'Perito'), evidenciaController.atualizarEvidencia);
-
-
-// 🗑️ EXCLUSÃO
-// DELETE /api/evidencias/:id - Remove uma evidência específica pelo ID
-router.delete('/:id', autorizar('Admin'), evidenciaController.excluirEvidencia);
-// DELETE /api/evidencias/todas - Exclui todas as evidências (rota perigosa, apenas Admin)
-router.delete('/todas', autorizar('Admin'), evidenciaController.excluirTodasEvidencias);
+// Rotas básicas CRUD com parâmetros
+router.post('/', evidenciaController.criarEvidencia);
+router.get('/', evidenciaController.listarEvidencias);
+router.get('/:id', evidenciaController.obterEvidencia);
+router.put('/:id', evidenciaController.atualizarEvidencia);
+router.delete('/:id', evidenciaController.excluirEvidencia);
 
 module.exports = router;

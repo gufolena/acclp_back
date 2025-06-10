@@ -1,14 +1,6 @@
 // ================ controllers/usuarioController.js ================
 const Usuario = require('../models/usuario');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
-// Gerar token de acesso
-const gerarToken = (payload) => {
-  return jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN 
-  });
-};
 
 
 
@@ -236,36 +228,33 @@ exports.excluirUsuario = async (req, res) => {
 exports.loginUsuario = async (req, res) => {
   try {
     const { email, senha } = req.body;
-
-    // Verifica se o email existe
+    
+    // Verificar se o email existe
     const usuario = await Usuario.findOne({ email }).select('+senha');
-
+    
     if (!usuario) {
       return res.status(401).json({
         sucesso: false,
         mensagem: 'Credenciais inválidas'
       });
     }
-
-    // Verifica se a senha está correta
+    
+    // Verificar se a senha está correta
     const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
+    
     if (!senhaCorreta) {
       return res.status(401).json({
         sucesso: false,
         mensagem: 'Credenciais inválidas'
       });
     }
-
-    // Gera o token JWT
-    const token = gerarToken({ id: usuario._id, tipo_perfil: usuario.tipo_perfil });
-
-    // Remove a senha do objeto
+    
+    // Remover senha do resultado
     usuario.senha = undefined;
-
+    
     res.status(200).json({
       sucesso: true,
       mensagem: 'Login realizado com sucesso',
-      token,
       dados: {
         id: usuario._id,
         primeiro_nome: usuario.primeiro_nome,
@@ -278,7 +267,7 @@ exports.loginUsuario = async (req, res) => {
         foto_perfil: usuario.foto_perfil_usuario || ''
       }
     });
-
+    
   } catch (error) {
     res.status(500).json({
       sucesso: false,
